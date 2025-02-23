@@ -3,7 +3,7 @@
 This Terraform configuration automates the provisioning of AWS infrastructure for a Jenkins deployment. The setup includes a Virtual Private Cloud (VPC), subnets, security groups, and an EC2 instance for Jenkins.
 
 ## **Infrastructure Overview**
-![Picture_1](https://github.com/user-attachments/assets/ef844fa2-87e8-429e-822f-72d324cfecf7)
+![Picture_1](https://github.com/user-attachments/assets/f5201cae-8d70-4e7d-8aa6-1b89ce44fe96)
 
 
 This Terraform script provisions the following AWS resources:
