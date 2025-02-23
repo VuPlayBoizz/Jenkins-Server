@@ -113,21 +113,23 @@ private_key_path   = "<path-to-private-key>"
    ```bash
    terraform destroy -auto-approve
    ```
-6. **Variables**
-| Variable Name                 | Description                                      | Example Value |
-|--------------------------------|--------------------------------------------------|---------------|
-| `tags`                         | General tags for resource identification        | `{ Name = "jenkins-vpc", Environment = "Production" }` |
-| `region`                       | AWS region for resource deployment              | `ap-southeast-1` |
-| `cidr_block`                   | CIDR block for VPC                              | `11.0.0.0/16` |
-| `enable_dns_support`           | Enable DNS resolution support                   | `true` |
-| `enable_dns_hostnames`         | Enable DNS hostnames for instances              | `true` |
-| `public_subnet_cidr_block`     | CIDR block for public subnet                    | `11.0.1.0/24` |
-| `private_subnet_cidr_block`    | CIDR block for private subnet                   | `11.0.3.0/24` |
-| `availability_zone`            | Availability zone for subnets                   | `ap-southeast-1a` |
-| `My_computer_ip`               | IP address allowed for SSH access               | `192.168.154.131/32` |
-| `key_name`                     | SSH key pair name                               | `jenkins-key` |
-| `instance_type`                | AWS instance type                               | `t2.medium` |
-| `private_key_path`             | Path to the SSH private key                     | `./Modules/08_aws_key_pair/jenkins-key.pem` |
+## Variables
+
+| Variable Name               | Description                                      | Example Value |
+|-----------------------------|--------------------------------------------------|---------------|
+| `tags`                      | General tags for resource identification        | `{ Name = "jenkins-vpc", Environment = "Production" }` |
+| `region`                    | AWS region for resource deployment              | `ap-southeast-1` |
+| `cidr_block`                | CIDR block for VPC                              | `11.0.0.0/16` |
+| `enable_dns_support`        | Enable DNS resolution support                   | `true` |
+| `enable_dns_hostnames`      | Enable DNS hostnames for instances              | `true` |
+| `public_subnet_cidr_block`  | CIDR block for public subnet                    | `11.0.1.0/24` |
+| `private_subnet_cidr_block` | CIDR block for private subnet                   | `11.0.3.0/24` |
+| `availability_zone`         | Availability zone for subnets                   | `ap-southeast-1a` |
+| `My_computer_ip`           | IP address allowed for SSH access               | `192.168.154.131/32` |
+| `key_name`                 | SSH key pair name                               | `jenkins-key` |
+| `instance_type`            | AWS instance type                               | `t2.medium` |
+| `private_key_path`         | Path to the SSH private key                     | `./Modules/08_aws_key_pair/jenkins-key.pem` |
+
 
 ## **Prerequisites**
 
