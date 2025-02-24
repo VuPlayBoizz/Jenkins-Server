@@ -37,7 +37,7 @@ resource "aws_security_group" "public-sg" {
         from_port   = 50000
         to_port     = 50000
         protocol    = "tcp"
-        cidr_blocks = [var.vpc_cidr_block]
+        prefix_list_ids = [var.prefix_list_ids]
     }
 
     egress {

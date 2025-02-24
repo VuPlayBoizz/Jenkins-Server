@@ -43,6 +43,7 @@ module "prefix-list" {
     jenkins_vpc_cidr    = var.cidr_block
     eks_vpc_cidr        = var.eks_vpc_cidr
     My_computer_ip      = var.My_computer_ip
+    nat_gateway_ip      = module.vpc-nat-gateway.nat_gateway_ip
 }
 
 module "security-group" {

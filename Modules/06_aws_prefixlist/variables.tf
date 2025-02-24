@@ -10,3 +10,8 @@ variable "My_computer_ip" {
     description = "My computer IP address"
     type        = string
 }
+
+variable "nat_gateway_ip" {
+    description = "Nat Gateway IP address"
+    type        = string
+}
