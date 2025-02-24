@@ -29,9 +29,20 @@ resource "aws_instance" "ec2_instance" {
         sudo systemctl enable docker
         sudo usermod -aG docker ubuntu
         sudo apt update -y
+
+        # Tạo thư mục cho Jenkins Agent
         mkdir -p /home/ubuntu/jenkins_agent
         chown -R ubuntu:ubuntu /home/ubuntu/jenkins_agent
         wget -O /home/ubuntu/jenkins_agent/agent.jar http://${var.jenkins_master_ip}:8080/jnlpJars/agent.jar
+
+        # Cài đặt wget và GPG nếu chưa có
+        sudo apt-get install -y wget gnupg
+
+        # Cài đặt Trivy
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install -y trivy
     EOF
     )
   
