@@ -4,11 +4,47 @@ resource "aws_security_group" "public-sg" {
     vpc_id      = var.vpc_id
 
     ingress {
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = [var.My_computer_ip]
+    }
+
+    ingress {
+        from_port   = 25
+        to_port     = 25
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
         from_port   = 80
         to_port     = 80
         protocol    = "tcp"
         prefix_list_ids = [var.prefix_list_ids]
     }
+
+    ingress {
+        from_port   = 443
+        to_port     = 443
+        protocol    = "tcp"
+        prefix_list_ids = [var.prefix_list_ids]
+    }
+
+    ingress {
+        from_port   = 465
+        to_port     = 465
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port   = 6443
+        to_port     = 6443
+        protocol    = "tcp"
+        prefix_list_ids = [var.prefix_list_ids]
+    }
+
     ingress {
         from_port   = 3000
         to_port     = 10000
@@ -21,18 +57,7 @@ resource "aws_security_group" "public-sg" {
         protocol    = "tcp"
         prefix_list_ids = [var.prefix_list_ids]
     }
-    ingress {
-        from_port   = 443
-        to_port     = 443
-        protocol    = "tcp"
-        prefix_list_ids = [var.prefix_list_ids]
-    }
-    ingress {
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        cidr_blocks = [var.My_computer_ip]
-    }
+
     ingress {
         from_port   = 50000
         to_port     = 50000
