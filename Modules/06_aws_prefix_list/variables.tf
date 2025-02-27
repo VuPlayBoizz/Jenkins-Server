@@ -6,11 +6,14 @@ variable "eks_vpc_cidr" {
     description = "The CIDR block for the EKS VPC"
     type        = string
 }
+variable "ec2_vpc_cidr" {
+    description = "The CIDR block for the ec2 VPC"
+    type        = string
+}
 variable "My_computer_ip" {
     description = "My computer IP address"
     type        = string
 }
-
 variable "nat_gateway_ip" {
     description = "Nat Gateway IP address"
     type        = string

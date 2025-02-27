@@ -14,12 +14,17 @@ resource "aws_ec2_managed_prefix_list" "jenkins_prefix_list" {
     }
 
     entry {
+        cidr        = var.ec2_vpc_cidr
+        description = "CIDR cho 12.0.0.0/16"
+    }
+
+    entry {
         cidr        = var.My_computer_ip
-        description = "CIDR cho 1.52.248.169/32"
+        description = "IPv4 of My computer"
     }
 
     entry {
       cidr        = var.nat_gateway_ip
-      description = "CIDR for NAT Gateway"
+      description = "IPv4 of Nat gateway"
     }
 }

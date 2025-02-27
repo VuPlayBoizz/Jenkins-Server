@@ -43,9 +43,17 @@ variable "availability_zone" {
 // Define the variables in aws_route_tables module
 
 //Define the variables in aws_route_tables module
-//Define the variables in aws_prefixlist module
+//Define the variables in aws_prefix_list module
 variable "eks_vpc_cidr" {
     description = "The CIDR block for the EKS VPC"
+    type        = string
+}
+variable "jenkins_vpc_cidr" {
+    description = "The CIDR block for the Jenkins VPC"
+    type        = string
+}
+variable "ec2_vpc_cidr" {
+    description = "The CIDR block for the ec2 VPC"
     type        = string
 }
 //Define the variables in aws_security_groups module

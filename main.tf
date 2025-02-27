@@ -39,9 +39,10 @@ module "vpc-route-table" {
 }
 
 module "prefix-list" {
-    source              = "./Modules/06_aws_prefixlist"
-    jenkins_vpc_cidr    = var.cidr_block
+    source              = "./Modules/06_aws_prefix_list"
+    jenkins_vpc_cidr    = var.jenkins_vpc_cidr
     eks_vpc_cidr        = var.eks_vpc_cidr
+    ec2_vpc_cidr        = var.ec2_vpc_cidr
     My_computer_ip      = var.My_computer_ip
     nat_gateway_ip      = module.vpc-nat-gateway.nat_gateway_ip
 }
