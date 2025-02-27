@@ -6,3 +6,5 @@ terraform.tfstate.backup
 
 # Variables and secrets
 *.tfvars
+*.pem
+Modules/08_aws_key_pair/*.pem
