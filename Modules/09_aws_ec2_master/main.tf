@@ -38,7 +38,7 @@ resource "aws_instance" "ec2_instance" {
 
     # Sau khi thư mục đã tồn tại, upload file
     provisioner "file" {
-        source      = "./Modules/09_aws_ec2_master/${var.script_name}"
+        source      = "./Modules/09_aws_ec2_master/install/${var.script_name}"
         destination = "${var.workspace_path}/${var.script_name}"
     }
 
