@@ -1,32 +1,56 @@
 #!/bin/bash
 
+set -e  # Dừng script nếu có lỗi xảy ra
+
 echo "🚀 Bắt đầu cài đặt Monitoring Server..."
+
 echo "🔄 Cập nhật hệ thống..."
-sudo apt update -y
+sudo apt update -y && sudo apt upgrade -y
 
 echo "🐳 Cài đặt Docker và Docker Compose..."
-sudo apt install docker.io docker-compose -y
+sudo apt install -y docker.io docker-compose
 
 echo "🔑 Cấu hình quyền truy cập Docker cho user ubuntu..."
 sudo usermod -aG docker ubuntu
-newgrp docker
-
-echo "📁 Tạo thư mục cho hệ thống giám sát..."
-sudo mkdir -p /tools/monitoring
-sudo chown -R ubuntu:ubuntu /tools/monitoring
-sudo chmod -R 755 /tools/monitoring
 
 echo "📂 Cấu hình thư mục cho Prometheus..."
 sudo mkdir -p /tools/monitoring/prometheus
 sudo chown -R 65534:65534 /tools/monitoring/prometheus
 
+sudo tee /tools/monitoring/prometheus/prometheus.yml > /dev/null <<EOL
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'blackbox_exporter'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://your-website.com
+          - http://localhost:9115
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115
+EOL
+
 echo "📂 Cấu hình thư mục cho Grafana..."
 sudo mkdir -p /tools/monitoring/grafana
 sudo chown -R 472:472 /tools/monitoring/grafana
-
-echo "✅ Đặt quyền sở hữu cho toàn bộ thư mục Monitoring..."
-sudo chown -R 1000:1000 /tools/monitoring
-
 
 # Tạo tệp Docker Compose để khởi chạy monitoring stack
 DOCKER_COMPOSE_CONFIG="/tools/monitoring/docker-compose.yml"
