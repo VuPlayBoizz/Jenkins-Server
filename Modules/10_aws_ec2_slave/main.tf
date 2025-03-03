@@ -44,6 +44,12 @@ resource "aws_instance" "ec2_instance" {
         sudo apt-get update -y
         sudo apt-get install -y trivy
 
+        # Cài đặt awscli
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        sudo apt install unzip -y
+        unzip -o awscliv2.zip
+        sudo ./aws/install --update
+
         # Cài đặt kubectl
         sudo apt update -y
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
