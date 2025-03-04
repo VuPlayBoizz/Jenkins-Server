@@ -81,15 +81,6 @@ services:
       - monitoring
     restart: unless-stopped
 
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    networks:
-      - monitoring
-    restart: unless-stopped
-
   blackbox_exporter:
     image: prom/blackbox-exporter:latest
     container_name: blackbox_exporter
