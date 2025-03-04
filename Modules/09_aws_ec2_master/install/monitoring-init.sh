@@ -1,101 +1,109 @@
 #!/bin/bash
 
-set -e  # Dừng script nếu có lỗi xảy ra
+set -e  # Dừng script nếu có lỗi
 
-echo "🚀 Bắt đầu cài đặt Monitoring Server..."
+# Cập nhật hệ thống
+sudo apt update && sudo apt upgrade -y
 
-echo "🔄 Cập nhật hệ thống..."
-sudo apt update -y && sudo apt upgrade -y
+# Tạo user hệ thống cho Prometheus
+echo "🔹 Tạo user Prometheus..."
+sudo useradd --system --no-create-home --shell /bin/false prometheus
 
-echo "🐳 Cài đặt Docker và Docker Compose..."
-sudo apt install -y docker.io docker-compose
+# Cài đặt Prometheus
+PROMETHEUS_VERSION="2.53.3"
+echo "🔹 Cài đặt Prometheus v$PROMETHEUS_VERSION..."
+wget -q https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+tar -xzf prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+sudo mkdir -p /data /etc/prometheus
+cd prometheus-$PROMETHEUS_VERSION.linux-amd64/
+sudo mv prometheus promtool /usr/local/bin/
+sudo mv consoles console_libraries /etc/prometheus/
+sudo mv prometheus.yml /etc/prometheus/prometheus.yml
+sudo chown -R prometheus:prometheus /etc/prometheus /data
+cd && rm -rf prometheus-$PROMETHEUS_VERSION.linux-amd64*
 
-echo "🔑 Cấu hình quyền truy cập Docker cho user ubuntu..."
-sudo usermod -aG docker ubuntu
+# Tạo service Prometheus
+echo "🔹 Tạo Prometheus service..."
+cat <<EOF | sudo tee /etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
-echo "📂 Cấu hình thư mục cho Prometheus..."
-sudo mkdir -p /tools/monitoring/prometheus
-sudo chown -R 65534:65534 /tools/monitoring/prometheus
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/prometheus \\
+  --config.file=/etc/prometheus/prometheus.yml \\
+  --storage.tsdb.path=/data \\
+  --web.console.templates=/etc/prometheus/consoles \\
+  --web.console.libraries=/etc/prometheus/console_libraries \\
+  --web.listen-address=0.0.0.0:9090 \\
+  --web.enable-lifecycle
 
-sudo tee /tools/monitoring/prometheus/prometheus.yml > /dev/null <<EOL
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+[Install]
+WantedBy=multi-user.target
+EOF
 
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
+# Kích hoạt Prometheus
+echo "🔹 Khởi động Prometheus..."
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
 
-  - job_name: 'node_exporter'
-    static_configs:
-      - targets: ['localhost:9100']
+# Cài đặt Grafana
+echo "🔹 Cài đặt Grafana..."
+sudo apt-get install -y adduser libfontconfig1 musl
+wget https://dl.grafana.com/enterprise/release/grafana-enterprise_11.5.2_amd64.deb
+sudo dpkg -i grafana-enterprise_11.5.2_amd64.deb
+sudo /bin/systemctl daemon-reload
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
 
-  - job_name: 'blackbox_exporter'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-          - http://your-website.com
-          - http://localhost:9115
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: localhost:9115
-EOL
+# Cài đặt Blackbox Exporter
+BLACKBOX_VERSION="0.26.0"
+echo "🔹 Cài đặt Blackbox Exporter v$BLACKBOX_VERSION..."
+wget -q https://github.com/prometheus/blackbox_exporter/releases/download/v$BLACKBOX_VERSION/blackbox_exporter-$BLACKBOX_VERSION.linux-amd64.tar.gz
+tar -xzf blackbox_exporter-$BLACKBOX_VERSION.linux-amd64.tar.gz
+sudo mv blackbox_exporter-$BLACKBOX_VERSION.linux-amd64/blackbox_exporter /usr/local/bin/
+sudo mkdir -p /etc/blackbox_exporter
+sudo mv blackbox_exporter-$BLACKBOX_VERSION.linux-amd64/blackbox.yml /etc/blackbox_exporter/blackbox.yml
+sudo useradd --system --no-create-home --shell /bin/false blackbox
+sudo chown -R blackbox:blackbox /etc/blackbox_exporter
+cd && rm -rf blackbox_exporter-$BLACKBOX_VERSION.linux-amd64*
 
-echo "📂 Cấu hình thư mục cho Grafana..."
-sudo mkdir -p /tools/monitoring/grafana
-sudo chown -R 472:472 /tools/monitoring/grafana
+# Tạo service Blackbox Exporter
+echo "🔹 Tạo Blackbox Exporter service..."
+cat <<EOF | sudo tee /etc/systemd/system/blackbox_exporter.service
+[Unit]
+Description=Blackbox Exporter
+Wants=network-online.target
+After=network-online.target
 
-# Tạo tệp Docker Compose để khởi chạy monitoring stack
-DOCKER_COMPOSE_CONFIG="/tools/monitoring/docker-compose.yml"
-echo "🛠️ Tạo tệp cấu hình Docker Compose tại $DOCKER_COMPOSE_CONFIG..."
-sudo tee $DOCKER_COMPOSE_CONFIG > /dev/null <<EOL
-version: '3.7'
+[Service]
+User=blackbox
+Group=blackbox
+Type=simple
+ExecStart=/usr/local/bin/blackbox_exporter --config.file=/etc/blackbox_exporter/blackbox.yml
+Restart=on-failure
 
-services:
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - /tools/monitoring/prometheus:/etc/prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - monitoring
-    restart: unless-stopped
+[Install]
+WantedBy=multi-user.target
+EOF
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - /tools/monitoring/grafana:/var/lib/grafana
-    networks:
-      - monitoring
-    restart: unless-stopped
+# Kích hoạt Blackbox Exporter
+echo "🔹 Khởi động Blackbox Exporter..."
+sudo systemctl daemon-reload
+sudo systemctl enable blackbox_exporter
+sudo systemctl start blackbox_exporter
 
-  blackbox_exporter:
-    image: prom/blackbox-exporter:latest
-    container_name: blackbox_exporter
-    ports:
-      - "9115:9115"
-    networks:
-      - monitoring
-    restart: unless-stopped
-
-networks:
-  monitoring:
-    driver: bridge
-EOL
-
-# Khởi động Monitoring Stack
-echo "🚀 Khởi động Monitoring Stack với Docker Compose..."
-cd /tools/monitoring
-docker-compose up -d
+# Hoàn tất
+echo "✅ Cài đặt hoàn tất!"
+echo "🎯 Prometheus: http://localhost:9090"
+echo "📊 Grafana: http://localhost:3000"
+echo "🔍 Blackbox Exporter: http://localhost:9115"
